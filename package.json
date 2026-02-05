@@ -1,12 +1,12 @@
 {
-  "name": "openclaw",
+  "name": "osmo",
   "version": "2026.2.3",
-  "description": "WhatsApp gateway CLI (Baileys web) with Pi RPC agent",
+  "description": "Customized AI Gateway and Agent (Osmo)",
   "keywords": [],
   "license": "MIT",
   "author": "",
   "bin": {
-    "openclaw": "openclaw.mjs"
+    "osmo": "openclaw.mjs"
   },
   "files": [
     "assets/",
