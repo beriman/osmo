@@ -92,10 +92,19 @@ export async function runGatewayLoop(params: {
     // SIGTERM/SIGINT still exit after a graceful shutdown.
     // eslint-disable-next-line no-constant-condition
     while (true) {
-      server = await params.start();
-      await new Promise<void>((resolve) => {
-        restartResolver = resolve;
-      });
+      try {
+        server = await params.start();
+        await new Promise<void>((resolve) => {
+          restartResolver = resolve;
+        });
+      } catch (err) {
+        if (shuttingDown) {
+          throw err;
+        }
+        gatewayLog.error(`gateway: server loop error: ${String(err)}`);
+        gatewayLog.info("gateway: auto-restarting in 5 seconds...");
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+      }
     }
   } finally {
     await lock?.release();

@@ -68,6 +68,8 @@ export type ChatProps = {
   onCloseSidebar?: () => void;
   onSplitRatioChange?: (ratio: number) => void;
   onChatScroll?: (event: Event) => void;
+  // Activity entries
+  activityEntries?: import("../components/activity-stream.ts").ActivityEntry[];
 };
 
 const COMPACTION_TOAST_DURATION_MS = 5000;
@@ -277,11 +279,11 @@ export function renderChat(props: ChatProps) {
       }
 
       <div
-        class="chat-split-container ${sidebarOpen ? "chat-split-container--open" : ""}"
+        class="chat-split-container ${sidebarOpen || (props.activityEntries?.length ?? 0) > 0 ? "chat-split-container--open" : ""}"
       >
         <div
           class="chat-main"
-          style="flex: ${sidebarOpen ? `0 0 ${splitRatio * 100}%` : "1 1 100%"}"
+          style="flex: ${sidebarOpen || (props.activityEntries?.length ?? 0) > 0 ? `0 0 ${splitRatio * 100}%` : "1 1 100%"}"
         >
           ${thread}
         </div>
@@ -307,7 +309,17 @@ export function renderChat(props: ChatProps) {
                 })}
               </div>
             `
-            : nothing
+            : props.activityEntries?.length
+              ? html`
+                <resizable-divider
+                  .splitRatio=${splitRatio}
+                  @resize=${(e: CustomEvent) => props.onSplitRatioChange?.(e.detail.splitRatio)}
+                ></resizable-divider>
+                <div class="chat-sidebar">
+                  <activity-stream .entries=${props.activityEntries}></activity-stream>
+                </div>
+              `
+              : nothing
         }
       </div>
 
@@ -394,6 +406,42 @@ export function renderChat(props: ChatProps) {
             ></textarea>
           </label>
           <div class="chat-compose__actions">
+            <input
+              type="file"
+              id="chat-file-upload"
+              style="display: none;"
+              multiple
+              accept="image/*"
+              @change=${(e: Event) => {
+                const input = e.target as HTMLInputElement;
+                if (!input.files || !props.onAttachmentsChange) return;
+                const files = Array.from(input.files);
+                for (const file of files) {
+                  const reader = new FileReader();
+                  reader.onload = () => {
+                    const dataUrl = reader.result as string;
+                    const newAttachment: ChatAttachment = {
+                      id: generateAttachmentId(),
+                      dataUrl,
+                      mimeType: file.type,
+                    };
+                    const current = props.attachments ?? [];
+                    props.onAttachmentsChange?.([...current, newAttachment]);
+                  };
+                  reader.readAsDataURL(file);
+                }
+                input.value = "";
+              }}
+            />
+            <button
+              class="btn btn--icon"
+              type="button"
+              title="Upload images"
+              ?disabled=${!props.connected}
+              @click=${() => document.getElementById("chat-file-upload")?.click()}
+            >
+              ${icons.plus}
+            </button>
             <button
               class="btn"
               ?disabled=${!props.connected || (!canAbort && props.sending)}

@@ -9,6 +9,9 @@ import { createCanvasTool } from "./tools/canvas-tool.js";
 import { createCronTool } from "./tools/cron-tool.js";
 import { createGatewayTool } from "./tools/gateway-tool.js";
 import { createImageTool } from "./tools/image-tool.js";
+import { createGeminiGenerateImageTool } from "./tools/gemini-generate-image.js";
+import { createResearcherTool } from "./tools/research-tool.js";
+import { createProjectMapperTool } from "./tools/project-mapper.js";
 import { createMessageTool } from "./tools/message-tool.js";
 import { createNodesTool } from "./tools/nodes-tool.js";
 import { createSessionStatusTool } from "./tools/session-status-tool.js";
@@ -146,6 +149,16 @@ export function createOpenClawTools(options?: {
     ...(webSearchTool ? [webSearchTool] : []),
     ...(webFetchTool ? [webFetchTool] : []),
     ...(imageTool ? [imageTool] : []),
+    createGeminiGenerateImageTool({
+      agentDir: options?.agentDir,
+      sandboxRoot: options?.sandboxRoot,
+    }),
+    createResearcherTool({
+      workspaceDir: options?.workspaceDir,
+    }),
+    createProjectMapperTool({
+      workspaceDir: options?.workspaceDir,
+    }),
   ];
 
   const pluginTools = resolvePluginTools({

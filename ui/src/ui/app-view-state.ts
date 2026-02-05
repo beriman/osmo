@@ -59,6 +59,7 @@ export type AppViewState = {
   nodesLoading: boolean;
   nodes: Array<Record<string, unknown>>;
   chatNewMessagesBelow: boolean;
+  activityEntries: import("./components/activity-stream.ts").ActivityEntry[];
   scrollToBottom: () => void;
   devicesLoading: boolean;
   devicesError: string | null;

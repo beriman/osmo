@@ -32,6 +32,7 @@ type ToolStreamHost = {
   toolStreamOrder: string[];
   chatToolMessages: Record<string, unknown>[];
   toolStreamSyncTimer: number | null;
+  activityEntries: import("./components/activity-stream.ts").ActivityEntry[];
 };
 
 function extractToolOutputText(value: unknown): string | null {
@@ -249,6 +250,23 @@ export function handleAgentEvent(host: ToolStreamHost, payload?: AgentEventPaylo
         : undefined;
 
   const now = Date.now();
+  
+  if (phase === "start") {
+    host.activityEntries = [...host.activityEntries, {
+      id: `act-${now}-${Math.random()}`,
+      type: "tool_start",
+      text: `Calling tool: ${name}`,
+      timestamp: now
+    }].slice(-100);
+  } else if (phase === "result") {
+    host.activityEntries = [...host.activityEntries, {
+      id: `act-${now}-${Math.random()}`,
+      type: "tool_result",
+      text: `Tool ${name} returned result`,
+      timestamp: now
+    }].slice(-100);
+  }
+
   let entry = host.toolStreamById.get(toolCallId);
   if (!entry) {
     entry = {
