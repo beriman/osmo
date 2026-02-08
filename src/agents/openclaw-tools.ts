@@ -9,7 +9,7 @@ import { createCanvasTool } from "./tools/canvas-tool.js";
 import { createCronTool } from "./tools/cron-tool.js";
 import { createGatewayTool } from "./tools/gateway-tool.js";
 import { createImageTool } from "./tools/image-tool.js";
-import { createGeminiGenerateImageTool } from "./tools/gemini-generate-image.js";
+import { createGeminiGenerateImageTool } from "./tools/imagine.js";
 import { createResearcherTool } from "./tools/research-tool.js";
 import { createProjectMapperTool } from "./tools/project-mapper.js";
 import { createMessageTool } from "./tools/message-tool.js";
@@ -19,6 +19,8 @@ import { createSessionsHistoryTool } from "./tools/sessions-history-tool.js";
 import { createSessionsListTool } from "./tools/sessions-list-tool.js";
 import { createSessionsSendTool } from "./tools/sessions-send-tool.js";
 import { createSessionsSpawnTool } from "./tools/sessions-spawn-tool.js";
+import { createMemoryAnnealTool } from "./tools/memory-anneal-tool.js";
+import { createOsmoSpeakTool } from "./tools/osmo-speak-tool.js";
 import { createTtsTool } from "./tools/tts-tool.js";
 import { createWebFetchTool, createWebSearchTool } from "./tools/web-tools.js";
 
@@ -145,6 +147,12 @@ export function createOpenClawTools(options?: {
     createSessionStatusTool({
       agentSessionKey: options?.agentSessionKey,
       config: options?.config,
+    }),
+    createMemoryAnnealTool(),
+    createOsmoSpeakTool({
+      config: options?.config,
+      agentChannel: options?.agentChannel,
+      sessionKey: options?.agentSessionKey,
     }),
     ...(webSearchTool ? [webSearchTool] : []),
     ...(webFetchTool ? [webFetchTool] : []),

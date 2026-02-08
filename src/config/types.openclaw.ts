@@ -97,6 +97,10 @@ export type OpenClawConfig = {
   talk?: TalkConfig;
   gateway?: GatewayConfig;
   memory?: MemoryConfig;
+  security?: {
+    /** Force all tools to run in a sandbox. */
+    strictMode?: boolean;
+  };
 };
 
 export type ConfigValidationIssue = {

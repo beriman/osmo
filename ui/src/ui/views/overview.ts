@@ -20,6 +20,7 @@ export type OverviewProps = {
   onSessionKeyChange: (next: string) => void;
   onConnect: () => void;
   onRefresh: () => void;
+  onAnnealMemory: () => void;
 };
 
 export function renderOverview(props: OverviewProps) {
@@ -236,6 +237,9 @@ export function renderOverview(props: OverviewProps) {
           ${props.cronEnabled == null ? "n/a" : props.cronEnabled ? "Enabled" : "Disabled"}
         </div>
         <div class="muted">Next wake ${formatNextRun(props.cronNext)}</div>
+      </div>
+    </section>
+
       </div>
     </section>
 

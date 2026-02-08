@@ -24,6 +24,8 @@ import { updateHandlers } from "./server-methods/update.js";
 import { usageHandlers } from "./server-methods/usage.js";
 import { voicewakeHandlers } from "./server-methods/voicewake.js";
 import { webHandlers } from "./server-methods/web.js";
+import { projectsList, projectsAdd, projectsRemove } from "./server-methods/projects.js";
+import { memoryAnneal } from "./server-methods/memory-anneal.js";
 import { wizardHandlers } from "./server-methods/wizard.js";
 
 const ADMIN_SCOPE = "operator.admin";
@@ -72,6 +74,7 @@ const READ_METHODS = new Set([
   "node.list",
   "node.describe",
   "chat.history",
+  "projects.list",
 ]);
 const WRITE_METHODS = new Set([
   "send",
@@ -88,6 +91,9 @@ const WRITE_METHODS = new Set([
   "chat.send",
   "chat.abort",
   "browser.request",
+  "projects.add",
+  "projects.remove",
+  "memory.anneal",
 ]);
 
 function authorizeGatewayMethod(method: string, client: GatewayRequestOptions["client"]) {
@@ -185,6 +191,10 @@ export const coreGatewayHandlers: GatewayRequestHandlers = {
   ...agentHandlers,
   ...agentsHandlers,
   ...browserHandlers,
+  "projects.list": projectsList.handler,
+  "projects.add": projectsAdd.handler,
+  "projects.remove": projectsRemove.handler,
+  "memory.anneal": memoryAnneal.handler,
 };
 
 export async function handleGatewayRequest(

@@ -323,6 +323,13 @@ export const OpenClawSchema = z
       .strict()
       .optional(),
     channels: ChannelsSchema,
+    security: z
+      .object({
+        /** Force all tools to run in a sandbox. */
+        strictMode: z.boolean().optional(),
+      })
+      .strict()
+      .optional(),
     discovery: z
       .object({
         wideArea: z

@@ -258,6 +258,11 @@ export function handleAgentEvent(host: ToolStreamHost, payload?: AgentEventPaylo
       text: `Calling tool: ${name}`,
       timestamp: now
     }].slice(-100);
+    
+    // Osmo: Auto-open activity monitor when a tool starts
+    if (host && (host as any).handleOpenSidebar && !(host as any).sidebarOpen) {
+      (host as any).handleOpenSidebar(null); // Passing null to indicate activity stream mode
+    }
   } else if (phase === "result") {
     host.activityEntries = [...host.activityEntries, {
       id: `act-${now}-${Math.random()}`,

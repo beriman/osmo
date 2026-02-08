@@ -8,6 +8,8 @@
  * system prompts or treated as trusted instructions.
  */
 
+import { scrubOutput } from "./osmo-guard.js";
+
 /**
  * Patterns that may indicate prompt injection attempts.
  * These are logged for monitoring but content is still processed (wrapped safely).
@@ -25,6 +27,15 @@ const SUSPICIOUS_PATTERNS = [
   /delete\s+all\s+(emails?|files?|data)/i,
   /<\/?system>/i,
   /\]\s*\n\s*\[?(system|assistant|user)\]?:/i,
+  // Osmo: Advanced injection patterns
+  /setting\s+up\s+a\s+new\s+identity/i,
+  /your\s+new\s+role\s+is/i,
+  /bypass\s+all\s+filters/i,
+  /disable\s+security\s+audit/i,
+  /the\s+user\s+has\s+authorized\s+this\s+override/i,
+  /\[?ADMIN\s+MODE\]?/i,
+  /base64\s+decode\s+this/i,
+  /hidden\s+system\s+instructions/i,
 ];
 
 /**
@@ -179,7 +190,9 @@ export type WrapExternalContentOptions = {
 export function wrapExternalContent(content: string, options: WrapExternalContentOptions): string {
   const { source, sender, subject, includeWarning = true } = options;
 
-  const sanitized = replaceMarkers(content);
+  // Osmo: Scrub sensitive data from external content
+  const scrubbed = scrubOutput(content);
+  const sanitized = replaceMarkers(scrubbed);
   const sourceLabel = EXTERNAL_SOURCE_LABELS[source] ?? "External";
   const metadataLines: string[] = [`Source: ${sourceLabel}`];
 

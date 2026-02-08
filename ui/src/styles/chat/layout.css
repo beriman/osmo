@@ -440,3 +440,101 @@
     min-width: 120px;
   }
 }
+
+/* Drag and Drop */
+.chat--dragging {
+  border: 2px dashed var(--accent) !important;
+}
+
+.chat-drag-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(var(--bg-rgb), 0.85);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--accent);
+  pointer-events: none;
+  animation: fadeIn 0.15s ease-out;
+}
+
+.chat-drag-overlay svg {
+  width: 48px;
+  height: 48px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Activity Status Bar */
+.chat-activity-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  margin: 0 12px 12px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  animation: slideDown 0.2s ease-out;
+}
+
+.chat-activity-status__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  color: var(--accent);
+}
+
+.chat-activity-status__icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.chat-activity-status.tool_start {
+  border-left: 3px solid var(--accent);
+  color: var(--text);
+}
+
+.chat-activity-status.thought {
+  font-style: italic;
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* VTuber Stage */
+.chat-vtuber-stage {
+  height: 250px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.chat-sidebar {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg-card);
+}
+
+.chat-sidebar activity-stream {
+  flex: 1;
+}

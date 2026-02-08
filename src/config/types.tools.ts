@@ -449,4 +449,8 @@ export type ToolsConfig = {
       deny?: string[];
     };
   };
+  /** MCP integration settings. */
+  mcp?: {
+    servers?: McpServerConfig[];
+  };
 };

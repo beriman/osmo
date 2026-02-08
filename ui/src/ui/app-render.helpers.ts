@@ -39,7 +39,12 @@ export function renderTab(state: AppViewState, tab: Tab) {
   `;
 }
 
-export function renderChatControls(state: AppViewState) {
+export function renderChatControls(state: AppViewState & { 
+  isActivityOpen?: boolean, 
+  onToggleActivity?: () => void,
+  talkEnabled?: boolean,
+  onToggleTalk?: () => void
+}) {
   const mainSessionKey = resolveMainSessionKey(state.hello, state.sessionsResult);
   const sessionOptions = resolveSessionOptions(
     state.sessionKey,
@@ -151,6 +156,20 @@ export function renderChatControls(state: AppViewState) {
         }
       >
         ${icons.brain}
+      </button>
+      <button
+        class="btn btn--sm btn--icon ${state.isActivityOpen ? "active" : ""}"
+        @click=${state.onToggleActivity}
+        title="Toggle Activity Monitor"
+      >
+        ${icons.activity}
+      </button>
+      <button
+        class="btn btn--sm btn--icon ${state.talkEnabled ? "active" : ""}"
+        @click=${state.onToggleTalk}
+        title="Toggle Talk Mode (Voice Output)"
+      >
+        ${icons.volume2}
       </button>
       <button
         class="btn btn--sm btn--icon ${focusActive ? "active" : ""}"

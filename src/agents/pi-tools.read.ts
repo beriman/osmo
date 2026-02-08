@@ -4,6 +4,7 @@ import type { AnyAgentTool } from "./pi-tools.types.js";
 import { detectMime } from "../media/mime.js";
 import { assertSandboxPath } from "./sandbox-paths.js";
 import { sanitizeToolResultImages } from "./tool-images.js";
+import { scrubOutput } from "../security/osmo-guard.js";
 
 // NOTE(steipete): Upstream read now does file-magic MIME detection; we keep the wrapper
 // to normalize payloads and sanitize oversized images before they hit providers.
@@ -294,6 +295,16 @@ export function createOpenClawReadTool(base: AnyAgentTool): AnyAgentTool {
         (params && typeof params === "object" ? (params as Record<string, unknown>) : undefined);
       assertRequiredParams(record, CLAUDE_PARAM_GROUPS.read, base.name);
       const result = await base.execute(toolCallId, normalized ?? params, signal);
+      
+      // Osmo: Scrub sensitive data from text content
+      if (Array.isArray(result.content)) {
+        for (const block of result.content) {
+          if (block && typeof block === "object" && (block as any).type === "text" && (block as any).text) {
+            (block as any).text = scrubOutput((block as any).text);
+          }
+        }
+      }
+
       const filePath = typeof record?.path === "string" ? String(record.path) : "<unknown>";
       const normalizedResult = await normalizeReadImageResult(result, filePath);
       return sanitizeToolResultImages(normalizedResult, `read:${filePath}`);

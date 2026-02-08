@@ -77,6 +77,8 @@ import {
 } from "./app-tool-stream.ts";
 import { resolveInjectedAssistantIdentity } from "./assistant-identity.ts";
 import { loadAssistantIdentity as loadAssistantIdentityInternal } from "./controllers/assistant-identity.ts";
+import { addProject, loadProjects, removeProject } from "./controllers/projects.ts";
+import { annealMemory } from "./controllers/memory.ts";
 import { loadSettings, type UiSettings } from "./storage.ts";
 import { type ChatAttachment, type ChatQueueItem, type CronFormState } from "./ui-types.ts";
 
@@ -133,6 +135,7 @@ export class OpenClawApp extends LitElement {
   @state() compactionStatus: import("./app-tool-stream.ts").CompactionStatus | null = null;
   @state() chatAvatarUrl: string | null = null;
   @state() chatThinkingLevel: string | null = null;
+  @state() projects: Array<{ id: string; name: string; description: string; createdAt: number }> = [];
   @state() chatQueue: ChatQueueItem[] = [];
   @state() chatAttachments: ChatAttachment[] = [];
   // Sidebar state for tool output viewing
@@ -275,7 +278,12 @@ export class OpenClawApp extends LitElement {
   private chatHasAutoScrolled = false;
   private chatUserNearBottom = true;
   @state() chatNewMessagesBelow = false;
+  @state() chatIsDragging = false;
   @state() activityEntries: import("./components/activity-stream.ts").ActivityEntry[] = [];
+  @state() sidebarOpen = false;
+  @state() sidebarContent: string | null = null;
+  @state() sidebarError: string | null = null;
+  @state() splitRatio = 0.6;
   private nodesPollInterval: number | null = null;
   private logsPollInterval: number | null = null;
   private debugPollInterval: number | null = null;
@@ -508,6 +516,22 @@ export class OpenClawApp extends LitElement {
     const newRatio = Math.max(0.4, Math.min(0.7, ratio));
     this.splitRatio = newRatio;
     this.applySettings({ ...this.settings, splitRatio: newRatio });
+  }
+
+  async handleLoadProjects() {
+    await loadProjects(this as unknown as AppViewState);
+  }
+
+  async handleAddProject(name: string, description: string, mcpCommand?: string) {
+    await addProject(this as unknown as AppViewState, name, description, mcpCommand);
+  }
+
+  async handleRemoveProject(id: string) {
+    await removeProject(this as unknown as AppViewState, id);
+  }
+
+  async handleMemoryAnneal() {
+    await annealMemory(this as unknown as AppViewState);
   }
 
   render() {

@@ -65,6 +65,11 @@ export function handleDisconnected(host: LifecycleHost) {
 }
 
 export function handleUpdated(host: LifecycleHost, changed: Map<PropertyKey, unknown>) {
+  if (changed.has("tab") && host.tab === "projects") {
+    // @ts-ignore
+    host.handleLoadProjects?.();
+  }
+
   if (
     host.tab === "chat" &&
     (changed.has("chatMessages") ||

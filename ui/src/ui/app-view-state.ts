@@ -55,6 +55,8 @@ export type AppViewState = {
   chatRunId: string | null;
   chatAvatarUrl: string | null;
   chatThinkingLevel: string | null;
+  chatIsDragging: boolean;
+  projects: Array<{ id: string; name: string; description: string; createdAt: number }>;
   chatQueue: ChatQueueItem[];
   nodesLoading: boolean;
   nodes: Array<Record<string, unknown>>;
@@ -212,6 +214,9 @@ export type AppViewState = {
   handleLoadLogs: () => Promise<void>;
   handleDebugCall: () => Promise<void>;
   handleRunUpdate: () => Promise<void>;
+  handleLoadProjects: () => Promise<void>;
+  handleAddProject: (name: string, description: string, mcpCommand?: string) => Promise<void>;
+  handleRemoveProject: (id: string) => Promise<void>;
   setPassword: (next: string) => void;
   setSessionKey: (next: string) => void;
   setChatMessage: (next: string) => void;

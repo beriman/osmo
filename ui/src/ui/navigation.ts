@@ -4,7 +4,7 @@ export const TAB_GROUPS = [
   { label: "Chat", tabs: ["chat"] },
   {
     label: "Control",
-    tabs: ["overview", "channels", "instances", "sessions", "cron"],
+    tabs: ["overview", "projects", "channels", "instances", "sessions", "cron"],
   },
   { label: "Agent", tabs: ["agents", "skills", "nodes"] },
   { label: "Settings", tabs: ["config", "debug", "logs"] },
@@ -13,6 +13,7 @@ export const TAB_GROUPS = [
 export type Tab =
   | "agents"
   | "overview"
+  | "projects"
   | "channels"
   | "instances"
   | "sessions"
@@ -27,6 +28,7 @@ export type Tab =
 const TAB_PATHS: Record<Tab, string> = {
   agents: "/agents",
   overview: "/overview",
+  projects: "/projects",
   channels: "/channels",
   instances: "/instances",
   sessions: "/sessions",
@@ -128,6 +130,8 @@ export function iconForTab(tab: Tab): IconName {
       return "messageSquare";
     case "overview":
       return "barChart";
+    case "projects":
+      return "layers";
     case "channels":
       return "link";
     case "instances":
@@ -157,6 +161,8 @@ export function titleForTab(tab: Tab) {
       return "Agents";
     case "overview":
       return "Overview";
+    case "projects":
+      return "Projects";
     case "channels":
       return "Channels";
     case "instances":
@@ -187,7 +193,9 @@ export function subtitleForTab(tab: Tab) {
     case "agents":
       return "Manage agent workspaces, tools, and identities.";
     case "overview":
-      return "Gateway status, entry points, and a fast health read.";
+      return "Gateway status, entry points, and a health read.";
+    case "projects":
+      return "Register and manage projects with dedicated sub-agents.";
     case "channels":
       return "Manage channels and settings.";
     case "instances":

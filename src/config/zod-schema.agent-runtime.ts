@@ -458,6 +458,15 @@ export const AgentEntrySchema = z
   })
   .strict();
 
+const McpServerSchema = z
+  .object({
+    name: z.string(),
+    command: z.string(),
+    args: z.array(z.string()),
+    env: z.record(z.string(), z.string()).optional(),
+  })
+  .strict();
+
 export const ToolsSchema = z
   .object({
     profile: ToolProfileSchema,
@@ -465,6 +474,12 @@ export const ToolsSchema = z
     alsoAllow: z.array(z.string()).optional(),
     deny: z.array(z.string()).optional(),
     byProvider: z.record(z.string(), ToolPolicyWithProfileSchema).optional(),
+    mcp: z
+      .object({
+        servers: z.array(McpServerSchema).optional(),
+      })
+      .strict()
+      .optional(),
     web: ToolsWebSchema,
     media: ToolsMediaSchema,
     links: ToolsLinksSchema,

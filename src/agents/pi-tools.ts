@@ -22,6 +22,7 @@ import {
 } from "./bash-tools.js";
 import { listChannelAgentTools } from "./channel-tools.js";
 import { createOpenClawTools } from "./openclaw-tools.js";
+import { mcpConnector } from "./tools/mcp-connector.js";
 import { wrapToolWithAbortSignal } from "./pi-tools.abort.js";
 import { wrapToolWithBeforeToolCallHook } from "./pi-tools.before-tool-call.js";
 import {
@@ -271,6 +272,18 @@ export function createOpenClawCodingTools(options?: {
     }
     return [tool];
   });
+
+  // Osmo: Load MCP tools
+  const mcpTools: AnyAgentTool[] = [];
+  const mcpConfigs = options?.config?.tools?.mcp?.servers;
+  if (Array.isArray(mcpConfigs)) {
+    for (const server of mcpConfigs) {
+      // In Osmo, we pre-register these at gateway startup to keep this tool list fast
+      const serverTools = mcpConnector.getRegisteredTools(server.name);
+      mcpTools.push(...serverTools);
+    }
+  }
+
   const { cleanupMs: cleanupMsOverride, ...execDefaults } = options?.exec ?? {};
   const execTool = createExecTool({
     ...execDefaults,
@@ -321,6 +334,7 @@ export function createOpenClawCodingTools(options?: {
     ...(applyPatchTool ? [applyPatchTool as unknown as AnyAgentTool] : []),
     execTool as unknown as AnyAgentTool,
     processTool as unknown as AnyAgentTool,
+    ...mcpTools,
     // Channel docking: include channel-defined agent tools (login, etc.).
     ...listChannelAgentTools({ cfg: options?.config }),
     ...createOpenClawTools({

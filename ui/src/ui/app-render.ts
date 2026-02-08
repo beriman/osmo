@@ -66,6 +66,7 @@ import { renderInstances } from "./views/instances.ts";
 import { renderLogs } from "./views/logs.ts";
 import { renderNodes } from "./views/nodes.ts";
 import { renderOverview } from "./views/overview.ts";
+import { renderProjects } from "./views/projects.ts";
 import { renderSessions } from "./views/sessions.ts";
 import { renderSkills } from "./views/skills.ts";
 import "./components/activity-stream.ts";
@@ -223,6 +224,18 @@ export function renderApp(state: AppViewState) {
         </section>
 
         ${
+          state.tab === "projects"
+            ? renderProjects({
+                projects: state.projects || [],
+                loading: state.chatLoading,
+                onRefresh: () => state.handleLoadProjects(),
+                onAdd: (name, desc, mcp) => state.handleAddProject(name, desc, mcp),
+                onRemove: (id) => state.handleRemoveProject(id),
+              })
+            : nothing
+        }
+
+        ${
           state.tab === "overview"
             ? renderOverview({
                 connected: state.connected,
@@ -250,6 +263,7 @@ export function renderApp(state: AppViewState) {
                 },
                 onConnect: () => state.connect(),
                 onRefresh: () => state.loadOverview(),
+                onAnnealMemory: () => (state as unknown as OpenClawApp).handleMemoryAnneal(),
               })
             : nothing
         }
@@ -988,9 +1002,28 @@ export function renderApp(state: AppViewState) {
                 onCloseSidebar: () => (state as unknown as OpenClawApp).handleCloseSidebar(),
                 onSplitRatioChange: (ratio: number) =>
                   (state as unknown as OpenClawApp).handleSplitRatioChange(ratio),
+                onToggleActivity: () => {
+                  if ((state as unknown as OpenClawApp).sidebarOpen) {
+                    (state as unknown as OpenClawApp).handleCloseSidebar();
+                  } else {
+                    (state as unknown as OpenClawApp).handleOpenSidebar(null);
+                  }
+                },
+                isActivityOpen: (state as unknown as OpenClawApp).sidebarOpen && !(state as unknown as OpenClawApp).sidebarContent,
+                talkEnabled: state.settings.talkEnabled,
+                onToggleTalk: () => {
+                   state.applySettings({ ...state.settings, talkEnabled: !state.settings.talkEnabled });
+                   if (!state.settings.talkEnabled) {
+                      void (state as unknown as OpenClawApp).client?.request("talk.mode", { mode: "on" });
+                   } else {
+                      void (state as unknown as OpenClawApp).client?.request("talk.mode", { mode: "off" });
+                   }
+                },
                 assistantName: state.assistantName,
                 assistantAvatar: state.assistantAvatar,
                 activityEntries: state.activityEntries,
+                isDragging: state.chatIsDragging,
+                onDraggingChange: (dragging) => (state.chatIsDragging = dragging),
               })
             : nothing
         }

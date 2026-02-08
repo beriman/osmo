@@ -176,6 +176,12 @@
 - For manual `openclaw message send` messages that include `!`, use the heredoc pattern noted below to avoid the Bash tool’s escaping.
 - Release guardrails: do not change version numbers without operator’s explicit consent; always ask permission before running any npm publish/release step.
 
+## 🫧 Osmo Protocol
+This codebase (`E:\Coding\Osmo`) is the source of truth for the **Osmo** assistant. All modifications to security, multimodal tools, and project management logic must be committed here. 
+
+### Core Focus: PT Sensasi Wangi Indonesia
+The assistant's primary goal is to support **Artisan Perfumery** and business scaling for Sensasi Wangi. Legacy context related to BIM/Construction is archived and should not be prioritized in active reasoning.
+
 ## NPM + 1Password (publish/verify)
 
 - Use the 1password skill; all `op` commands must run inside a fresh tmux session.

@@ -61,6 +61,7 @@ import { loadGatewayModelCatalog } from "./server-model-catalog.js";
 import { createNodeSubscriptionManager } from "./server-node-subscriptions.js";
 import { loadGatewayPlugins } from "./server-plugins.js";
 import { createGatewayReloadHandlers } from "./server-reload-handlers.js";
+import { mcpConnector } from "../agents/tools/mcp-connector.js";
 import { resolveGatewayRuntimeConfig } from "./server-runtime-config.js";
 import { createGatewayRuntimeState } from "./server-runtime-state.js";
 import { resolveSessionKeyForRun } from "./server-session-key.js";
@@ -537,6 +538,15 @@ export async function startGatewayServer(
     isNixMode,
   });
   scheduleGatewayUpdateCheck({ cfg: cfgAtStart, log, isNixMode });
+
+  // Osmo: Initialize MCP servers
+  const mcpConfigs = cfgAtStart.tools?.mcp?.servers;
+  if (Array.isArray(mcpConfigs)) {
+    for (const server of mcpConfigs) {
+      void mcpConnector.connectServer(server);
+    }
+  }
+
   const tailscaleCleanup = await startGatewayTailscaleExposure({
     tailscaleMode,
     resetOnExit: tailscaleConfig.resetOnExit,

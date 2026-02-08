@@ -88,11 +88,14 @@ export function collectAttackSurfaceSummaryFindings(cfg: OpenClawConfig): Securi
   const elevated = cfg.tools?.elevated?.enabled !== false;
   const hooksEnabled = cfg.hooks?.enabled === true;
   const browserEnabled = cfg.browser?.enabled ?? true;
+  const strictMode = cfg.security?.strictMode === true;
 
   const detail =
     `groups: open=${group.open}, allowlist=${group.allowlist}` +
     `\n` +
     `tools.elevated: ${elevated ? "enabled" : "disabled"}` +
+    `\n` +
+    `osmo.strictMode: ${strictMode ? "enabled" : "disabled"}` +
     `\n` +
     `hooks: ${hooksEnabled ? "enabled" : "disabled"}` +
     `\n` +

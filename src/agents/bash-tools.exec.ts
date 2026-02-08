@@ -39,6 +39,8 @@ import {
   markExited,
   tail,
 } from "./bash-process-registry.js";
+import { loadConfig } from "../config/config.js";
+import { scrubOutput, validateOsmoHostEnv, shouldForceSandbox } from "../security/osmo-guard.js";
 import {
   buildDockerExecArgs,
   buildSandboxEnv,
@@ -81,6 +83,9 @@ const DANGEROUS_HOST_ENV_PREFIXES = ["DYLD_", "LD_"];
 // Centralized sanitization helper.
 // Throws an error if dangerous variables or PATH modifications are detected on the host.
 function validateHostEnv(env: Record<string, string>): void {
+  // Osmo: Call expanded security validator
+  validateOsmoHostEnv(env);
+
   for (const key of Object.keys(env)) {
     const upperKey = key.toUpperCase();
 
@@ -668,7 +673,8 @@ async function runExecProcess(opts: {
   };
 
   const handleStdout = (data: string) => {
-    const str = sanitizeBinaryOutput(data.toString());
+    // Osmo: Scrub sensitive data from output
+    const str = scrubOutput(sanitizeBinaryOutput(data.toString()));
     for (const chunk of chunkString(str)) {
       appendOutput(session, "stdout", chunk);
       emitUpdate();
@@ -676,7 +682,8 @@ async function runExecProcess(opts: {
   };
 
   const handleStderr = (data: string) => {
-    const str = sanitizeBinaryOutput(data.toString());
+    // Osmo: Scrub sensitive data from output
+    const str = scrubOutput(sanitizeBinaryOutput(data.toString()));
     for (const chunk of chunkString(str)) {
       appendOutput(session, "stderr", chunk);
       emitUpdate();
@@ -924,6 +931,13 @@ export function createExecTool(
       const configuredHost = defaults?.host ?? "sandbox";
       const requestedHost = normalizeExecHost(params.host) ?? null;
       let host: ExecHost = requestedHost ?? configuredHost;
+
+      // Osmo: Force sandbox if strictMode is enabled
+      const config = loadConfig();
+      if (shouldForceSandbox(config)) {
+        host = "sandbox";
+      }
+
       if (!elevatedRequested && requestedHost && requestedHost !== configuredHost) {
         throw new Error(
           `exec host not allowed (requested ${renderExecHostLabel(requestedHost)}; ` +

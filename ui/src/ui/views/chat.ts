@@ -13,6 +13,7 @@ import { normalizeMessage, normalizeRoleForGrouping } from "../chat/message-norm
 import { icons } from "../icons.ts";
 import { renderMarkdownSidebar } from "./markdown-sidebar.ts";
 import "../components/resizable-divider.ts";
+import "../components/osmo-vtuber.ts";
 
 export type CompactionIndicatorStatus = {
   active: boolean;
@@ -70,6 +71,12 @@ export type ChatProps = {
   onChatScroll?: (event: Event) => void;
   // Activity entries
   activityEntries?: import("../components/activity-stream.ts").ActivityEntry[];
+  // Talk mode
+  talkEnabled?: boolean;
+  onToggleTalk?: () => void;
+  // Drag and drop
+  isDragging?: boolean;
+  onDraggingChange?: (dragging: boolean) => void;
 };
 
 const COMPACTION_TOAST_DURATION_MS = 5000;
@@ -108,6 +115,32 @@ function renderCompactionIndicator(status: CompactionIndicatorStatus | null | un
   return nothing;
 }
 
+function renderActivityStatus(entries: import("../components/activity-stream.ts").ActivityEntry[] | undefined) {
+  if (!entries || entries.length === 0) {
+    return nothing;
+  }
+
+  const latest = entries[entries.length - 1];
+  const timeSince = Date.now() - latest.timestamp;
+  
+  // Only show status for recent activities (last 30 seconds) or if it's a "running" type
+  if (timeSince > 30000 && latest.type !== "tool_start") {
+    return nothing;
+  }
+
+  let statusIcon = icons.activity;
+  if (latest.type === "tool_start") statusIcon = icons.loader;
+  if (latest.type === "tool_result") statusIcon = icons.check;
+  if (latest.type === "thought") statusIcon = icons.info;
+
+  return html`
+    <div class="chat-activity-status ${latest.type}">
+      <span class="chat-activity-status__icon">${statusIcon}</span>
+      <span class="chat-activity-status__text">${latest.text}</span>
+    </div>
+  `;
+}
+
 function generateAttachmentId(): string {
   return `att-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
@@ -118,23 +151,41 @@ function handlePaste(e: ClipboardEvent, props: ChatProps) {
     return;
   }
 
-  const imageItems: DataTransferItem[] = [];
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i];
-    if (item.type.startsWith("image/")) {
-      imageItems.push(item);
-    }
-  }
+  handleDataTransferItems(items, props);
+}
 
-  if (imageItems.length === 0) {
+function handleDataTransferItems(items: DataTransferItemList | FileList | DataTransferItem[], props: ChatProps) {
+  if (!props.onAttachmentsChange) {
     return;
   }
 
-  e.preventDefault();
+  const files: File[] = [];
+  if (items instanceof FileList) {
+    for (let i = 0; i < items.length; i++) {
+      files.push(items[i]);
+    }
+  } else {
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item instanceof File) {
+        files.push(item);
+      } else {
+        const file = item.getAsFile();
+        if (file) {
+          files.push(file);
+        }
+      }
+    }
+  }
 
-  for (const item of imageItems) {
-    const file = item.getAsFile();
-    if (!file) {
+  if (files.length === 0) {
+    return;
+  }
+
+  for (const file of files) {
+    if (!file.type.startsWith("image/")) {
+      // For now, only support images for simple multimodal.
+      // Could support PDF/Text later if the backend tool pipeline supports it.
       continue;
     }
 
@@ -150,6 +201,18 @@ function handlePaste(e: ClipboardEvent, props: ChatProps) {
       props.onAttachmentsChange?.([...current, newAttachment]);
     });
     reader.readAsDataURL(file);
+  }
+}
+
+function handleDrop(e: DragEvent, props: ChatProps) {
+  e.preventDefault();
+  props.onDraggingChange?.(false);
+
+  const items = e.dataTransfer?.items;
+  if (items) {
+    handleDataTransferItems(items, props);
+  } else if (e.dataTransfer?.files) {
+    handleDataTransferItems(e.dataTransfer.files, props);
   }
 }
 
@@ -207,6 +270,7 @@ export function renderChat(props: ChatProps) {
     : "Connect to the gateway to start chatting…";
 
   const splitRatio = props.splitRatio ?? 0.6;
+  const isActivityOpen = Boolean(!props.sidebarContent && (props.activityEntries?.length ?? 0) > 0);
   const sidebarOpen = Boolean(props.sidebarOpen && props.onCloseSidebar);
   const thread = html`
     <div
@@ -255,12 +319,25 @@ export function renderChat(props: ChatProps) {
   `;
 
   return html`
-    <section class="card chat">
+    <section class="card chat ${props.isDragging ? "chat--dragging" : ""}"
+      @dragover=${(e: DragEvent) => {
+        e.preventDefault();
+        props.onDraggingChange?.(true);
+      }}
+      @dragleave=${(e: DragEvent) => {
+        e.preventDefault();
+        props.onDraggingChange?.(false);
+      }}
+      @drop=${(e: DragEvent) => handleDrop(e, props)}
+    >
+      ${props.isDragging ? html`<div class="chat-drag-overlay">${icons.plus} Drop files here</div>` : nothing}
       ${props.disabledReason ? html`<div class="callout">${props.disabledReason}</div>` : nothing}
 
       ${props.error ? html`<div class="callout danger">${props.error}</div>` : nothing}
 
       ${renderCompactionIndicator(props.compactionStatus)}
+
+      ${renderActivityStatus(props.activityEntries)}
 
       ${
         props.focusMode
@@ -316,6 +393,12 @@ export function renderChat(props: ChatProps) {
                   @resize=${(e: CustomEvent) => props.onSplitRatioChange?.(e.detail.splitRatio)}
                 ></resizable-divider>
                 <div class="chat-sidebar">
+                  <div class="chat-vtuber-stage">
+                    <osmo-vtuber 
+                      .avatarUrl=${props.assistantAvatarUrl ?? 'assets/avatar-placeholder.svg'}
+                      .isTalking=${isBusy}
+                    ></osmo-vtuber>
+                  </div>
                   <activity-stream .entries=${props.activityEntries}></activity-stream>
                 </div>
               `
