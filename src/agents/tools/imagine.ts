@@ -1,7 +1,7 @@
 import { Type } from "@sinclair/typebox";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "node:crypto";
 import type { AnyAgentTool } from "./common.js";
 import { resolveApiKeyForProvider } from "../model-auth.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
@@ -135,7 +135,7 @@ export function createGeminiGenerateImageTool(options?: {
         const base64 = img.bytesBase64Encoded;
         if (!base64) continue;
 
-        const filename = `${uuidv4()}.png`;
+        const filename = `${randomUUID()}.png`;
         const filePath = path.join(mediaDir, filename);
         await fs.writeFile(filePath, Buffer.from(base64, "base64"));
         outputFiles.push(path.join("media", "generated", filename));
